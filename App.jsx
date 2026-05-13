@@ -15,11 +15,14 @@ const warnings = [
 ];
 
 const steps = ['Study', 'Revise', 'Quiz', 'Test', 'Result', 'Retest'];
+const STORAGE_KEY = 'executex_accounts';
+const USER_DATA_KEY = 'executex_user_';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
+  const [currentUserEmail, setCurrentUserEmail] = useState('');
   
   const [siEmail, setSiEmail] = useState('');
   const [siPassword, setSiPassword] = useState('');
@@ -38,6 +41,7 @@ export default function App() {
   const [sideOpen, setSideOpen] = useState(window.innerWidth >= 768);
 
   const [warningIdx, setWarningIdx] = useState(0);
+  const [selectedDateIdx, setSelectedDateIdx] = useState(0);
 
   const [subjects, setSubjects] = useState([]);
   const [subjectInput, setSubjectInput] = useState('');
@@ -47,7 +51,7 @@ export default function App() {
   const [taskTitle, setTaskTitle] = useState('');
   const [taskPriority, setTaskPriority] = useState('Medium');
   const [taskHours, setTaskHours] = useState('1');
-  const [taskDeadline, setTaskDeadline] = useState('');
+  const [taskDate, setTaskDate] = useState('');
   const [taskNotes, setTaskNotes] = useState('');
 
   const [exams, setExams] = useState([]);
@@ -60,9 +64,34 @@ export default function App() {
   const [quizScore, setQuizScore] = useState('');
   const [fullMarks, setFullMarks] = useState('');
 
-  const accountsDB = React.useRef({
-    'demo@executex.com': { password: 'demo123', name: 'Demo User' }
-  });
+  // Load data on mount
+  useEffect(() => {
+    const userEmail = localStorage.getItem('executex_current_user');
+    if (userEmail) {
+      const accountsDB = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"demo@executex.com":{"password":"demo123","name":"Demo User"}}');
+      if (accountsDB[userEmail]) {
+        setCurrentUserEmail(userEmail);
+        setCurrentUser(accountsDB[userEmail].name);
+        setIsLoggedIn(true);
+        
+        const userData = JSON.parse(localStorage.getItem(USER_DATA_KEY + userEmail) || '{"subjects":[],"allTasks":{},"exams":[]}');
+        setSubjects(userData.subjects || []);
+        setAllTasks(userData.allTasks || {});
+        setExams(userData.exams || []);
+      }
+    }
+  }, []);
+
+  // Save data whenever it changes
+  useEffect(() => {
+    if (isLoggedIn && currentUserEmail) {
+      localStorage.setItem(USER_DATA_KEY + currentUserEmail, JSON.stringify({
+        subjects,
+        allTasks,
+        exams,
+      }));
+    }
+  }, [subjects, allTasks, exams, isLoggedIn, currentUserEmail]);
 
   useEffect(() => {
     const timer = setInterval(() => setWarningIdx(prev => (prev + 1) % warnings.length), 6000);
@@ -97,6 +126,25 @@ export default function App() {
     return `${d}/${m}/${y}`;
   };
 
+  const get7Days = () => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const dateStr = formatDate(d.toISOString().split('T')[0]);
+      return {
+        index: i,
+        date: d.getDate(),
+        day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()],
+        fullDate: dateStr,
+      };
+    });
+  };
+
+  const getTasksForDate = (dateStr) => {
+    if (!selectedSubject || !allTasks[selectedSubject]) return [];
+    return allTasks[selectedSubject].filter(task => task.date === dateStr);
+  };
+
   const handleSignIn = () => {
     setSiError('');
     if (!siEmail.trim()) {
@@ -108,14 +156,20 @@ export default function App() {
       return;
     }
 
-    if (accountsDB.current[siEmail] && accountsDB.current[siEmail].password === siPassword) {
-      setCurrentUser(accountsDB.current[siEmail].name);
+    const accountsDB = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"demo@executex.com":{"password":"demo123","name":"Demo User"}}');
+
+    if (accountsDB[siEmail] && accountsDB[siEmail].password === siPassword) {
+      setCurrentUser(accountsDB[siEmail].name);
+      setCurrentUserEmail(siEmail);
       setIsLoggedIn(true);
+      localStorage.setItem('executex_current_user', siEmail);
       setSiEmail('');
       setSiPassword('');
-      setSubjects([]);
-      setAllTasks({});
-      setExams([]);
+      
+      const userData = JSON.parse(localStorage.getItem(USER_DATA_KEY + siEmail) || '{"subjects":[],"allTasks":{},"exams":[]}');
+      setSubjects(userData.subjects || []);
+      setAllTasks(userData.allTasks || {});
+      setExams(userData.exams || []);
     } else {
       setSiError('❌ Invalid email or password');
     }
@@ -145,29 +199,39 @@ export default function App() {
       setSuError('Passwords do not match');
       return;
     }
-    if (accountsDB.current[suEmail]) {
+
+    const accountsDB = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"demo@executex.com":{"password":"demo123","name":"Demo User"}}');
+
+    if (accountsDB[suEmail]) {
       setSuError('Email already registered');
       return;
     }
 
-    accountsDB.current[suEmail] = { password: suPassword, name: suEmail.split('@')[0] };
+    accountsDB[suEmail] = { password: suPassword, name: suEmail.split('@')[0] };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(accountsDB));
     setSuSuccess('✅ Account created! Signing in...');
 
     setTimeout(() => {
-      setCurrentUser(accountsDB.current[suEmail].name);
+      setCurrentUser(accountsDB[suEmail].name);
+      setCurrentUserEmail(suEmail);
       setIsLoggedIn(true);
+      localStorage.setItem('executex_current_user', suEmail);
       setSuEmail('');
       setSuPassword('');
       setSuPasswordConfirm('');
       setSuError('');
       setSuSuccess('');
       setShowSignUp(false);
+      setSubjects([]);
+      setAllTasks({});
+      setExams([]);
     }, 1000);
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     setCurrentUser('');
+    setCurrentUserEmail('');
     setPage('dashboard');
     setMode('execution');
     setSubjects([]);
@@ -176,6 +240,7 @@ export default function App() {
     setSelectedSubject('');
     setCurrentStep(0);
     setProofUploaded(false);
+    localStorage.removeItem('executex_current_user');
   };
 
   const addSubject = () => {
@@ -187,7 +252,8 @@ export default function App() {
       alert('Subject already exists');
       return;
     }
-    setSubjects([...subjects, subjectInput]);
+    const newSubjects = [...subjects, subjectInput];
+    setSubjects(newSubjects);
     setAllTasks({ ...allTasks, [subjectInput]: [] });
     setSubjectInput('');
     alert('✅ Subject added!');
@@ -202,8 +268,8 @@ export default function App() {
       alert('Task title required');
       return;
     }
-    if (!taskDeadline) {
-      alert('Deadline required');
+    if (!taskDate) {
+      alert('Date required');
       return;
     }
 
@@ -212,7 +278,7 @@ export default function App() {
       title: taskTitle,
       priority: taskPriority,
       hours: taskHours,
-      deadline: formatDate(taskDeadline),
+      date: taskDate,
       notes: taskNotes,
     };
 
@@ -224,7 +290,7 @@ export default function App() {
     setTaskTitle('');
     setTaskPriority('Medium');
     setTaskHours('1');
-    setTaskDeadline('');
+    setTaskDate('');
     setTaskNotes('');
     alert('✅ Task added!');
   };
@@ -424,6 +490,10 @@ export default function App() {
     );
   }
 
+  const daysArray = get7Days();
+  const currentDayFull = daysArray[selectedDateIdx].fullDate;
+  const tasksForSelectedDay = getTasksForDate(currentDayFull);
+
   return (
     <div className="min-h-screen bg-slate-950 text-white overflow-hidden flex flex-col">
       <div className="fixed inset-0 -z-20">
@@ -600,9 +670,31 @@ export default function App() {
 
                 {selectedSubject && (
                   <>
+                    {/* 7-DAY SELECTOR */}
+                    <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 space-y-4">
+                      <h3 className="text-lg font-bold">📅 Select Date</h3>
+                      <div className="flex gap-2 overflow-x-auto pb-2">
+                        {daysArray.map(dayObj => (
+                          <button
+                            key={dayObj.index}
+                            onClick={() => setSelectedDateIdx(dayObj.index)}
+                            className={`flex-shrink-0 px-4 py-2 rounded-lg border transition text-center ${
+                              selectedDateIdx === dayObj.index
+                                ? 'bg-blue-600 border-blue-400'
+                                : 'bg-slate-800/40 border-slate-700/50 hover:bg-slate-800'
+                            }`}
+                          >
+                            <div className="text-xs font-semibold">{dayObj.day}</div>
+                            <div className="text-sm font-bold">{dayObj.date}</div>
+                            <div className="text-xs text-slate-400">{dayObj.fullDate}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     {mode === 'planning' ? (
                       <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 space-y-4">
-                        <h3 className="text-lg font-bold">📝 Add Task ({selectedSubject})</h3>
+                        <h3 className="text-lg font-bold">📝 Add Task for {currentDayFull}</h3>
                         
                         <input
                           type="text"
@@ -612,7 +704,7 @@ export default function App() {
                           className="w-full px-4 py-2 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500"
                         />
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           <select
                             value={taskPriority}
                             onChange={e => setTaskPriority(e.target.value)}
@@ -633,19 +725,16 @@ export default function App() {
                             className="px-3 py-2 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white text-sm"
                           />
 
-                          <input
-                            type="date"
-                            value={taskDeadline}
-                            onChange={e => setTaskDeadline(e.target.value)}
-                            className="px-3 py-2 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white text-sm"
-                          />
-
                           <button
-                            onClick={addTask}
+                            onClick={() => setTaskDate(currentDayFull)}
                             className="px-4 py-2 bg-blue-600 rounded-lg font-bold hover:bg-blue-700 text-sm"
                           >
-                            <Plus size={16} />
+                            Set Date
                           </button>
+                        </div>
+
+                        <div className="p-2 bg-slate-800/30 rounded text-xs text-slate-300">
+                          Selected Date: <span className="font-bold">{taskDate || 'Not set'}</span>
                         </div>
 
                         <textarea
@@ -654,6 +743,13 @@ export default function App() {
                           onChange={e => setTaskNotes(e.target.value)}
                           className="w-full px-4 py-2 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 h-20 resize-none text-sm"
                         />
+
+                        <button
+                          onClick={addTask}
+                          className="w-full px-4 py-3 bg-blue-600 rounded-lg font-bold hover:bg-blue-700"
+                        >
+                          ✅ Add Task
+                        </button>
                       </div>
                     ) : (
                       <div className="p-6 rounded-2xl bg-gradient-to-br from-blue-900/30 to-purple-900/30 border border-blue-500/20 space-y-4">
@@ -743,16 +839,17 @@ export default function App() {
                       </div>
                     )}
 
-                    {allTasks[selectedSubject] && allTasks[selectedSubject].length > 0 && (
+                    {/* TASKS FOR SELECTED DATE */}
+                    {tasksForSelectedDay.length > 0 && (
                       <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 space-y-4">
-                        <h3 className="text-lg font-bold">📋 Tasks</h3>
-                        {allTasks[selectedSubject].map(task => (
+                        <h3 className="text-lg font-bold">📋 Tasks for {currentDayFull} ({tasksForSelectedDay.length})</h3>
+                        {tasksForSelectedDay.map(task => (
                           <div key={task.id} className="p-4 bg-slate-800/30 border border-slate-700/50 rounded-lg space-y-2">
                             <div className="flex justify-between items-start">
                               <div>
                                 <div className="font-bold">{task.title}</div>
                                 <div className="text-xs text-slate-400">
-                                  {task.hours}h • {task.priority} • {task.deadline}
+                                  {task.hours}h • {task.priority}
                                 </div>
                               </div>
                               <button
@@ -834,7 +931,7 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[
                     { label: 'Subjects', value: subjects.length, color: 'from-blue-500' },
-                    { label: 'Tasks', value: Object.values(allTasks).reduce((s, a) => s + a.length, 0), color: 'from-purple-500' },
+                    { label: 'Total Tasks', value: Object.values(allTasks).reduce((s, a) => s + a.length, 0), color: 'from-purple-500' },
                     { label: 'Exams', value: exams.length, color: 'from-orange-500' },
                   ].map((stat, i) => (
                     <div key={i} className={`p-6 rounded-xl bg-gradient-to-br ${stat.color}/20 border border-slate-700/50`}>
