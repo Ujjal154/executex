@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Menu,X,Clock,Zap,Target,TrendingUp,Upload,Link2,FileText,CheckCircle2,Circle,Lock,
   ChevronRight,ArrowRight,AlertCircle,Star,Calendar,Settings,LogOut,ChevronDown,Plus,
-  Trash2,Send,BarChart3,LogIn,Eye,EyeOff,AlertTriangle,Trash,Edit2,
+  Trash2,Send,BarChart3,LogIn,Eye,EyeOff,AlertTriangle,Trash,Edit2,ChevronLeft,
 } from 'lucide-react';
 
 const psychologicalWarnings = [
@@ -22,10 +22,15 @@ const pipelineSteps = ['Study', 'Revise', 'Quiz', 'Test', 'Result', 'Retest'];
 export default function App() {
   // Auth
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [signUpEmail, setSignUpEmail] = useState('');
+  const [signUpPassword, setSignUpPassword] = useState('');
+  const [signUpPassword2, setSignUpPassword2] = useState('');
+  const [signUpError, setSignUpError] = useState('');
 
   // Navigation
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -101,6 +106,28 @@ export default function App() {
       setLoginEmail('');
       setLoginPassword('');
     }
+  };
+
+  const handleSignUp = () => {
+    if (!signUpEmail || !signUpPassword || !signUpPassword2) {
+      setSignUpError('All fields required');
+      return;
+    }
+    if (signUpPassword !== signUpPassword2) {
+      setSignUpError('Passwords do not match');
+      return;
+    }
+    if (signUpPassword.length < 6) {
+      setSignUpError('Password must be 6+ characters');
+      return;
+    }
+    setCurrentUser(signUpEmail.split('@')[0]);
+    setIsLoggedIn(true);
+    setSignUpEmail('');
+    setSignUpPassword('');
+    setSignUpPassword2('');
+    setSignUpError('');
+    setIsSignUp(false);
   };
 
   const handleLogout = () => {
@@ -206,70 +233,146 @@ export default function App() {
 
             <p className="text-center text-slate-300 text-sm">Study Execution Dashboard</p>
 
-            <div className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Email</label>
-                <input
-                  type="email"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Password</label>
-                <div className="relative">
+            {isSignUp ? (
+              // SIGN UP FORM
+              <div className="space-y-4">
+                <h3 className="text-lg font-bold">Create Account</h3>
+                
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-2">Email</label>
                   <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                    placeholder="Enter password"
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition pr-10"
+                    type="email"
+                    value={signUpEmail}
+                    onChange={(e) => setSignUpEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
                   />
-                  <button
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
-              </div>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleLogin}
-                disabled={!loginEmail || !loginPassword}
-                className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 font-bold text-white hover:shadow-xl disabled:opacity-50"
-              >
-                <LogIn size={18} className="inline mr-2" />
-                Sign In
-              </motion.button>
-            </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-2">Password</label>
+                  <input
+                    type="password"
+                    value={signUpPassword}
+                    onChange={(e) => setSignUpPassword(e.target.value)}
+                    placeholder="Minimum 6 characters"
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                  />
+                </div>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-700/50"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-slate-900/50 text-slate-400">Demo Account</span>
-              </div>
-            </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-2">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={signUpPassword2}
+                    onChange={(e) => setSignUpPassword2(e.target.value)}
+                    placeholder="Re-enter password"
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                  />
+                </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              onClick={() => {
-                setLoginEmail('demo@executex.com');
-                setLoginPassword('demo123');
-              }}
-              className="w-full px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-sm text-slate-300 font-semibold"
-            >
-              demo@executex.com / demo123
-            </motion.button>
+                {signUpError && (
+                  <div className="p-3 rounded-lg bg-red-600/20 border border-red-500/30 text-red-300 text-sm">
+                    {signUpError}
+                  </div>
+                )}
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSignUp}
+                  className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 font-bold text-white hover:shadow-xl"
+                >
+                  Create Account
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => {
+                    setIsSignUp(false);
+                    setSignUpError('');
+                  }}
+                  className="w-full px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-sm text-slate-300 font-semibold flex items-center justify-center gap-2"
+                >
+                  <ChevronLeft size={16} />
+                  Back to Sign In
+                </motion.button>
+              </div>
+            ) : (
+              // SIGN IN FORM
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                    placeholder="you@example.com"
+                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-2">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                      placeholder="Enter password"
+                      className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 transition pr-10"
+                    />
+                    <button
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleLogin}
+                  disabled={!loginEmail || !loginPassword}
+                  className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 font-bold text-white hover:shadow-xl disabled:opacity-50"
+                >
+                  <LogIn size={18} className="inline mr-2" />
+                  Sign In
+                </motion.button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-700/50"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-slate-900/50 text-slate-400">Or try demo</span>
+                  </div>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => {
+                    setLoginEmail('demo@executex.com');
+                    setLoginPassword('demo123');
+                  }}
+                  className="w-full px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 hover:bg-slate-800 text-sm text-slate-300 font-semibold"
+                >
+                  Demo: demo@executex.com / demo123
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => setIsSignUp(true)}
+                  className="w-full px-4 py-2 rounded-lg bg-blue-600/20 border border-blue-500/30 hover:bg-blue-600/30 text-sm text-blue-300 font-semibold"
+                >
+                  Create New Account
+                </motion.button>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
@@ -584,248 +687,275 @@ function DashboardPage({
         )}
       </motion.div>
 
-      {selectedSubject && (
-        <>
-          {/* Task Creation */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-xl space-y-4"
-          >
-            <h3 className="text-lg font-bold">📝 Create Task for {selectedSubject}</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Task title (required)*"
-                value={taskForm.title}
-                onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 text-sm"
-              />
-
-              <select
-                value={taskForm.priority}
-                onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value })}
-                className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white focus:outline-none focus:border-blue-500/50 text-sm"
-              >
-                <option>Low</option>
-                <option>Medium</option>
-                <option>High</option>
-                <option>Critical</option>
-              </select>
-
-              <input
-                type="number"
-                placeholder="Hours"
-                value={taskForm.hours}
-                onChange={(e) => setTaskForm({ ...taskForm, hours: e.target.value })}
-                min="1"
-                className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 text-sm"
-              />
-
-              <input
-                type="date"
-                value={taskForm.deadline}
-                onChange={(e) => setTaskForm({ ...taskForm, deadline: e.target.value })}
-                className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white focus:outline-none focus:border-blue-500/50 text-sm"
-              />
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={addTask}
-              className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 font-bold text-white hover:shadow-xl"
-            >
-              <Plus size={18} className="inline mr-2" />
-              Add Task
-            </motion.button>
-          </motion.div>
-
-          {/* Tasks List */}
-          {tasks[selectedSubject] && tasks[selectedSubject].length > 0 && (
+      {mode === 'planning' ? (
+        // PLANNING MODE
+        selectedSubject && (
+          <>
+            {/* Task Creation */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-xl space-y-4"
             >
-              <h3 className="text-lg font-bold">📋 Tasks ({tasks[selectedSubject].length})</h3>
+              <h3 className="text-lg font-bold">📝 Create Task for {selectedSubject}</h3>
 
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {tasks[selectedSubject].map((task) => (
-                  <motion.div
-                    key={task.id}
-                    layout
-                    className="p-4 bg-slate-800/30 border border-slate-700/50 rounded-lg flex justify-between items-start"
-                  >
-                    <div>
-                      <div className="font-semibold text-white">{task.title}</div>
-                      <div className="text-xs text-slate-400 mt-1">
-                        {task.hours}h • {task.priority} • {task.deadline}
-                      </div>
-                    </div>
+              {/* 7-Day Selector */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold">Select Day</h4>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {days.map((day, i) => (
                     <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      onClick={() => deleteTask(selectedSubject, task.id)}
-                      className="p-2 hover:bg-red-600/20 rounded"
+                      key={i}
+                      onClick={() => setSelectedDayIndex(i)}
+                      whileHover={{ scale: 1.05 }}
+                      className={`flex-shrink-0 px-3 py-2 rounded-lg border transition ${
+                        selectedDayIndex === i
+                          ? 'bg-blue-600 border-blue-400'
+                          : 'bg-slate-800/40 border-slate-700/50'
+                      }`}
                     >
-                      <Trash size={16} className="text-red-400" />
+                      <div className="text-center">
+                        <div className="text-xs font-semibold">{day.day}</div>
+                        <div className="text-sm font-bold">{day.date}</div>
+                      </div>
                     </motion.button>
-                  </motion.div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </motion.div>
-          )}
-        </>
-      )}
 
-      {/* Execution Mode Content */}
-      {mode === 'execution' && selectedSubject && tasks[selectedSubject]?.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
-        >
-          <motion.div
-            className="p-6 rounded-2xl bg-gradient-to-br from-blue-900/30 to-purple-900/30 border border-blue-500/20 backdrop-blur-xl"
-          >
-            <h3 className="text-2xl font-bold mb-4">⚡ Execution Pipeline</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Task title (required)*"
+                  value={taskForm.title}
+                  onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                  className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 text-sm"
+                />
 
-            <div className="space-y-3">
-              {pipelineSteps.map((step, i) => {
-                const isActive = i === currentStep;
-                const isCompleted = i < currentStep;
-                const isLocked = i > currentStep;
-
-                return (
-                  <motion.button
-                    key={i}
-                    onClick={() => {
-                      if (!isLocked) {
-                        setCurrentStep(i);
-                        setProofUploaded(false);
-                      }
-                    }}
-                    whileHover={!isLocked ? { scale: 1.02 } : {}}
-                    disabled={isLocked}
-                    className={`w-full p-4 rounded-xl border transition ${
-                      isCompleted
-                        ? 'bg-emerald-600/20 border-emerald-500/50'
-                        : isActive
-                          ? 'bg-gradient-to-r from-blue-600/40 to-purple-600/40 border-blue-500/50'
-                          : isLocked
-                            ? 'bg-slate-800/20 border-slate-700/30 opacity-50'
-                            : 'bg-slate-800/30 border-slate-700/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0">
-                        {isCompleted ? (
-                          <CheckCircle2 size={24} className="text-emerald-400" />
-                        ) : isActive ? (
-                          <motion.div
-                            animate={{ scale: [1, 1.1, 1] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          >
-                            <Zap size={24} className="text-blue-400" />
-                          </motion.div>
-                        ) : (
-                          <Circle size={24} className="text-slate-500" />
-                        )}
-                      </div>
-                      <div className="flex-1 text-left">
-                        <div className="font-bold">{step}</div>
-                        <div className="text-xs text-slate-400">
-                          {isCompleted ? 'Completed' : isActive ? 'In Progress' : 'Locked'}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </motion.div>
-
-          {currentStep > 0 && currentStep < pipelineSteps.length && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-xl space-y-4"
-            >
-              <h3 className="text-lg font-bold">📸 Proof Vault</h3>
-              {proofUploaded ? (
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-emerald-600/20 border border-emerald-500/50">
-                  <CheckCircle2 size={24} className="text-emerald-400" />
-                  <div>
-                    <div className="font-semibold text-emerald-300">Proof Uploaded</div>
-                    <div className="text-xs text-emerald-200">{new Date().toLocaleTimeString()}</div>
-                  </div>
-                </div>
-              ) : (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => setProofUploaded(true)}
-                  className="w-full p-4 rounded-lg border-2 border-dashed border-slate-700/50 hover:border-blue-500/50 transition"
+                <select
+                  value={taskForm.priority}
+                  onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value })}
+                  className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white focus:outline-none focus:border-blue-500/50 text-sm"
                 >
-                  <Upload size={20} className="mx-auto mb-2 text-slate-500" />
-                  <div className="font-semibold">Click to Upload Proof</div>
-                </motion.button>
-              )}
+                  <option>Low</option>
+                  <option>Medium</option>
+                  <option>High</option>
+                  <option>Critical</option>
+                </select>
 
-              {(currentStep === 2 || currentStep === 3) && (
-                <div className="space-y-4 mt-4">
-                  <h4 className="font-bold">📊 Performance Scoring</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <input
-                      type="number"
-                      placeholder="Score (required)*"
-                      value={quizScore}
-                      onChange={(e) => setQuizScore(e.target.value)}
-                      className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 text-sm"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Full Marks (required)*"
-                      value={fullMarks}
-                      onChange={(e) => setFullMarks(e.target.value)}
-                      className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 text-sm"
-                    />
-                  </div>
+                <input
+                  type="number"
+                  placeholder="Hours"
+                  value={taskForm.hours}
+                  onChange={(e) => setTaskForm({ ...taskForm, hours: e.target.value })}
+                  min="1"
+                  className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 text-sm"
+                />
 
-                  {quizScore && fullMarks && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className={`p-4 rounded-lg bg-gradient-to-r ${performanceLevel()?.color} bg-opacity-20`}
-                    >
-                      <div className="font-bold text-lg">{((quizScore / fullMarks) * 100).toFixed(1)}%</div>
-                      <div className="text-sm font-semibold">{performanceLevel()?.level}</div>
-                    </motion.div>
-                  )}
-                </div>
-              )}
+                <input
+                  type="date"
+                  value={taskForm.deadline}
+                  onChange={(e) => setTaskForm({ ...taskForm, deadline: e.target.value })}
+                  className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white focus:outline-none focus:border-blue-500/50 text-sm"
+                />
+              </div>
 
               <motion.button
                 whileHover={{ scale: 1.02 }}
-                onClick={() => {
-                  if (proofUploaded && currentStep < pipelineSteps.length - 1) {
-                    setCurrentStep(currentStep + 1);
-                    setProofUploaded(false);
-                  }
-                }}
-                disabled={!proofUploaded}
-                className={`w-full px-6 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 ${
-                  proofUploaded
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:shadow-xl'
-                    : 'bg-slate-700/30 opacity-50'
-                }`}
+                whileTap={{ scale: 0.98 }}
+                onClick={addTask}
+                className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 font-bold text-white hover:shadow-xl"
               >
-                <CheckCircle2 size={20} />
-                Progress
+                <Plus size={18} className="inline mr-2" />
+                Add Task
               </motion.button>
             </motion.div>
-          )}
-        </motion.div>
+
+            {/* Tasks List */}
+            {tasks[selectedSubject] && tasks[selectedSubject].length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-xl space-y-4"
+              >
+                <h3 className="text-lg font-bold">📋 Tasks ({tasks[selectedSubject].length})</h3>
+
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {tasks[selectedSubject].map((task) => (
+                    <motion.div
+                      key={task.id}
+                      layout
+                      className="p-4 bg-slate-800/30 border border-slate-700/50 rounded-lg flex justify-between items-start"
+                    >
+                      <div>
+                        <div className="font-semibold text-white">{task.title}</div>
+                        <div className="text-xs text-slate-400 mt-1">
+                          {task.hours}h • {task.priority} • {task.deadline}
+                        </div>
+                      </div>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        onClick={() => deleteTask(selectedSubject, task.id)}
+                        className="p-2 hover:bg-red-600/20 rounded"
+                      >
+                        <Trash size={16} className="text-red-400" />
+                      </motion.button>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </>
+        )
+      ) : (
+        // EXECUTION MODE
+        selectedSubject && tasks[selectedSubject]?.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-6"
+          >
+            <motion.div
+              className="p-6 rounded-2xl bg-gradient-to-br from-blue-900/30 to-purple-900/30 border border-blue-500/20 backdrop-blur-xl"
+            >
+              <h3 className="text-2xl font-bold mb-4">⚡ Execution Pipeline</h3>
+
+              <div className="space-y-3">
+                {pipelineSteps.map((step, i) => {
+                  const isActive = i === currentStep;
+                  const isCompleted = i < currentStep;
+                  const isLocked = i > currentStep;
+
+                  return (
+                    <motion.button
+                      key={i}
+                      onClick={() => {
+                        if (!isLocked) {
+                          setCurrentStep(i);
+                          setProofUploaded(false);
+                        }
+                      }}
+                      whileHover={!isLocked ? { scale: 1.02 } : {}}
+                      disabled={isLocked}
+                      className={`w-full p-4 rounded-xl border transition ${
+                        isCompleted
+                          ? 'bg-emerald-600/20 border-emerald-500/50'
+                          : isActive
+                            ? 'bg-gradient-to-r from-blue-600/40 to-purple-600/40 border-blue-500/50'
+                            : isLocked
+                              ? 'bg-slate-800/20 border-slate-700/30 opacity-50'
+                              : 'bg-slate-800/30 border-slate-700/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0">
+                          {isCompleted ? (
+                            <CheckCircle2 size={24} className="text-emerald-400" />
+                          ) : isActive ? (
+                            <motion.div
+                              animate={{ scale: [1, 1.1, 1] }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
+                            >
+                              <Zap size={24} className="text-blue-400" />
+                            </motion.div>
+                          ) : (
+                            <Circle size={24} className="text-slate-500" />
+                          )}
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="font-bold">{step}</div>
+                          <div className="text-xs text-slate-400">
+                            {isCompleted ? 'Completed' : isActive ? 'In Progress' : 'Locked'}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+
+            {currentStep > 0 && currentStep < pipelineSteps.length && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-6 rounded-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 backdrop-blur-xl space-y-4"
+              >
+                <h3 className="text-lg font-bold">📸 Proof Vault</h3>
+                {proofUploaded ? (
+                  <div className="flex items-center gap-3 p-4 rounded-lg bg-emerald-600/20 border border-emerald-500/50">
+                    <CheckCircle2 size={24} className="text-emerald-400" />
+                    <div>
+                      <div className="font-semibold text-emerald-300">Proof Uploaded</div>
+                      <div className="text-xs text-emerald-200">{new Date().toLocaleTimeString()}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    onClick={() => setProofUploaded(true)}
+                    className="w-full p-4 rounded-lg border-2 border-dashed border-slate-700/50 hover:border-blue-500/50 transition"
+                  >
+                    <Upload size={20} className="mx-auto mb-2 text-slate-500" />
+                    <div className="font-semibold">Click to Upload Proof</div>
+                  </motion.button>
+                )}
+
+                {(currentStep === 2 || currentStep === 3) && (
+                  <div className="space-y-4 mt-4">
+                    <h4 className="font-bold">📊 Performance Scoring</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <input
+                        type="number"
+                        placeholder="Score (required)*"
+                        value={quizScore}
+                        onChange={(e) => setQuizScore(e.target.value)}
+                        className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 text-sm"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Full Marks (required)*"
+                        value={fullMarks}
+                        onChange={(e) => setFullMarks(e.target.value)}
+                        className="px-4 py-3 bg-slate-900/50 border border-slate-700/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 text-sm"
+                      />
+                    </div>
+
+                    {quizScore && fullMarks && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className={`p-4 rounded-lg bg-gradient-to-r ${performanceLevel()?.color} bg-opacity-20`}
+                      >
+                        <div className="font-bold text-lg">{((quizScore / fullMarks) * 100).toFixed(1)}%</div>
+                        <div className="text-sm font-semibold">{performanceLevel()?.level}</div>
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => {
+                    if (proofUploaded && currentStep < pipelineSteps.length - 1) {
+                      setCurrentStep(currentStep + 1);
+                      setProofUploaded(false);
+                    }
+                  }}
+                  disabled={!proofUploaded}
+                  className={`w-full px-6 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 ${
+                    proofUploaded
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:shadow-xl'
+                      : 'bg-slate-700/30 opacity-50'
+                  }`}
+                >
+                  <CheckCircle2 size={20} />
+                  Progress
+                </motion.button>
+              </motion.div>
+            )}
+          </motion.div>
+        )
       )}
 
       {/* Reality Check */}
