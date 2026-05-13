@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ExecuteX">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Premium Study Execution Dashboard for Competitive Exam Students">
+    
+    <title>ExecuteX - Study Execution Dashboard</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230f172a' width='100' height='100'/><path fill='%233b82f6' d='M50 20 L70 50 L50 80 L30 50 Z'/></svg>">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: #0f172a;
+            color: #fff;
+            overflow: hidden;
+            position: fixed;
+        }
+        
+        #root {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        /* Prevent pinch zoom on iOS */
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        button {
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="main.jsx"></script>
+</body>
+</html>
