@@ -24,18 +24,57 @@ import {
   Plus,
   Trash2,
   Send,
+  BarChart3,
+  BookOpen,
+  LogIn,
+  Eye,
+  EyeOff,
+  AlertTriangle,
 } from 'lucide-react';
 
 export default function App() {
+  // Auth State
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState('');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Navigation
+  const [currentPage, setCurrentPage] = useState('dashboard');
   const [mode, setMode] = useState('execution');
   const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
-  const [selectedDay, setSelectedDay] = useState(new Date().getDate());
+
+  // Selected Data
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const [selectedTask, setSelectedTask] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
+  
+  // UI States
   const [proofUploaded, setProofUploaded] = useState(false);
   const [expandedResource, setExpandedResource] = useState(false);
-  const [showScoring, setShowScoring] = useState(false);
   const [warningIndex, setWarningIndex] = useState(0);
   const [time, setTime] = useState(new Date());
+
+  // Subjects
+  const [subjects, setSubjects] = useState(['Mathematics', 'Physics', 'Chemistry', 'Biology', 'English']);
+  const [selectedSubject, setSelectedSubject] = useState('');
+  
+  // Exams
+  const [exams, setExams] = useState([
+    { id: 1, name: 'JEE Advanced', date: '2024-06-15', countdown: 0 },
+    { id: 2, name: 'NEET', date: '2024-05-05', countdown: 0 },
+  ]);
+  
+  // Tasks
+  const [tasks, setTasks] = useState({
+    Mathematics: [
+      { id: 1, title: 'Integration Basics', hours: 3, deadline: 'Today', priority: 'High', progress: 0 }
+    ],
+  });
+
+  const [quizScore, setQuizScore] = useState('');
+  const [fullMarks, setFullMarks] = useState('');
 
   // Register service worker
   useEffect(() => {
@@ -60,30 +99,61 @@ export default function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [taskData, setTaskData] = useState({
-    title: 'Advanced Calculus - Integration',
-    subject: 'Mathematics',
-    priority: 'Critical',
-    hours: 4,
-    deadline: 'Today, 11:59 PM',
-    difficulty: 'High',
-    topic: 'Definite Integrals & Applications',
-  });
+  // Calculate countdown for exams
+  useEffect(() => {
+    const examsWithCountdown = exams.map(exam => {
+      const examDate = new Date(exam.date);
+      const today = new Date();
+      const diff = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
+      return { ...exam, countdown: diff > 0 ? diff : 0 };
+    });
+    setExams(examsWithCountdown);
+  }, []);
 
-  const [quizScore, setQuizScore] = useState('');
-  const [fullMarks, setFullMarks] = useState('');
-
+  // Time update
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
+  // Warning rotation
   useEffect(() => {
     const warningTimer = setInterval(() => {
       setWarningIndex((prev) => (prev + 1) % psychologicalWarnings.length);
     }, 6000);
     return () => clearInterval(warningTimer);
   }, []);
+
+  // Window resize handler
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Login handler
+  const handleLogin = () => {
+    if (loginEmail && loginPassword) {
+      setCurrentUser(loginEmail.split('@')[0]);
+      setIsLoggedIn(true);
+      setLoginEmail('');
+      setLoginPassword('');
+    }
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser('');
+    setCurrentPage('dashboard');
+    setMode('execution');
+  };
 
   const psychologicalWarnings = [
     "Someone with less talent is outperforming you through consistency.",
